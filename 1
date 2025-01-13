@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Survey with Export</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .flags, .user-input {
+            margin-bottom: 20px;
+        }
+        .flag-item, .input-item {
+            margin-bottom: 10px;
+        }
+        input[type="number"], input[type="text"] {
+            padding: 5px;
+            margin-left: 10px;
+            width: 150px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .data-table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .data-table th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+        .data-table td {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flag Survey</h1>
+        <p>Fill in your name and the number of flags you want. Save your data, and export it as a CSV file.</p>
+        <div class="user-input">
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Enter your name">
+        </div>
+        <div class="flags">
+            <div class="flag-item">
+                <label for="redFlag">Red Flags (10 cents):</label>
+                <input type="number" id="redFlag" value="0" min="0">
+            </div>
+            <div class="flag-item">
+                <label for="blueFlag">Blue Flags (20 cents):</label>
+                <input type="number" id="blueFlag" value="0" min="0">
+            </div>
+            <div class="flag-item">
+                <label for="greenFlag">Green Flags (50 cents):</label>
+                <input type="number" id="greenFlag" value="0" min="0">
+            </div>
+        </div>
+        <div>
+            <p>Total Cost: <span id="totalCost">$0.00</span></p>
+        </div>
+        <button id="saveButton">Save Data</button>
+        <button id="downloadButton">Download CSV</button>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Red Flags</th>
+                    <th>Blue Flags</th>
+                    <th>Green Flags</th>
+                    <th>Total Cost</th>
+                </tr>
+            </thead>
+            <tbody id="dataTable">
+                <!-- Data will be appended here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // DOM elements
+        const nameInput = document.getElementById('name');
+        const redFlagInput = document.getElementById('redFlag');
+        const blueFlagInput = document.getElementById('blueFlag');
+        const greenFlagInput = document.getElementById('greenFlag');
+        const totalCostDisplay = document.getElementById('totalCost');
+        const saveButton = document.getElementById('saveButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const dataTable = document.getElementById('dataTable');
+
+        // Cost constants
+        const RED_COST = 0.10;
+        const BLUE_COST = 0.20;
+        const GREEN_COST = 0.50;
+
+        // Data storage
+        let surveyData = [];
+
+        // Function to calculate total cost
+        function calculateTotalCost() {
+            const redCount = parseInt(redFlagInput.value) || 0;
+            const blueCount = parseInt(blueFlagInput.value) || 0;
+            const greenCount = parseInt(greenFlagInput.value) || 0;
+            const totalCost = (redCount * RED_COST) + (blueCount * BLUE_COST) + (greenCount * GREEN_COST);
+            totalCostDisplay.textContent = $${totalCost.toFixed(2)};
+            return totalCost;
+        }
+
+        // Save data
+        function saveData() {
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('Please enter your name.');
+                return;
+            }
+            const redCount = parseInt(redFlagInput.value) || 0;
+            const blueCount = parseInt(blueFlagInput.value) || 0;
+            const greenCount = parseInt(greenFlagInput.value) || 0;
+            const totalCost = calculateTotalCost();
+
+            const rowData = { name, redCount, blueCount, greenCount, totalCost };
+            surveyData.push(rowData);
+
+            // Update table
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${name}</td>
+                <td>${redCount}</td>
+                <td>${blueCount}</td>
+                <td>${greenCount}</td>
+                <td>$${totalCost.toFixed(2)}</td>
+            `;
+            dataTable.appendChild(row);
+
+            // Clear inputs
+            nameInput.value = '';
+            redFlagInput.value = 0;
+            blueFlagInput.value = 0;
+            greenFlagInput.value = 0;
+            calculateTotalCost();
+        }
+
+        // Download CSV
+        function downloadCSV() {
+            let csvContent = 'Name,Red Flags,Blue Flags,Green Flags,Total Cost\n';
+            surveyData.forEach(row => {
+                csvContent += ${row.name},${row.redCount},${row.blueCount},${row.greenCount},$${row.totalCost.toFixed(2)}\n;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'survey_data.csv';
+            link.click();
+        }
+
+        // Event listeners
+        redFlagInput.addEventListener('input', calculateTotalCost);
+        blueFlagInput.addEventListener('input', calculateTotalCost);
+        greenFlagInput.addEventListener('input', calculateTotalCost);
+        saveButton.addEventListener('click', saveData);
+        downloadButton.addEventListener('click', downloadCSV);
+
+        // Initialize total cost
+        calculateTotalCost();
+    </script>
+</body>
+</html>
